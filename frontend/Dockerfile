@@ -8,6 +8,8 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+RUN npm run build
 
-CMD ["node", "app.js"]
+EXPOSE 4321
+
+CMD ["node", "./dist/server/entry.mjs"]

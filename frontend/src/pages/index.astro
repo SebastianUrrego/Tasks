@@ -1,0 +1,219 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TaskForm from '../components/TaskForm.astro';
+import TaskList from '../components/TaskList.astro';
+---
+
+<Layout title="Todo App - Premium">
+  <main class="app-container">
+    <header class="app-header">
+      <div class="title-wrapper">
+        <span class="sparkle">✨</span>
+        <h1>Mis tareas</h1>
+      </div>
+      <p>Organiza tu día con estilo y simplicidad.</p>
+    </header>
+
+    <div class="content-wrapper">
+      <TaskForm />
+      <TaskList />
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .app-container {
+    width: 100%;
+    max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .content-wrapper {
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .app-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .title-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .sparkle {
+    font-size: 2rem;
+    animation: pulse 2s infinite;
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: shine 4s linear infinite;
+  }
+
+  p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  @keyframes shine {
+    to { background-position: 200% center; }
+  }
+
+  @media (max-width: 600px) {
+    .content-wrapper {
+      padding: 1.5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+  }
+</style>
+
+<script>
+  const API = 'http://localhost:3000';
+
+  const form      = document.getElementById('task-form') as HTMLFormElement;
+  const input     = document.getElementById('task-input') as HTMLInputElement;
+  const container = document.getElementById('task-container') as HTMLDivElement;
+  const emptyMsg  = document.getElementById('empty-msg') as HTMLDivElement;
+
+  function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('es-ES', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  }
+
+  function toggleEmpty() {
+    const tasks = container.querySelectorAll('.task-item');
+    emptyMsg.style.display = tasks.length === 0 ? 'flex' : 'none';
+  }
+
+  function createTaskElement(task: { id: number; title: string; created_at: string }) {
+    const item = document.createElement('div');
+    item.className = 'task-item';
+    item.dataset.id = String(task.id);
+
+    item.innerHTML = `
+      <div class="task-content">
+        <div class="check-indicator"></div>
+        <div class="task-text">
+          <p class="task-title">${task.title}</p>
+          <p class="task-date">${formatDate(task.created_at)}</p>
+        </div>
+      </div>
+      <button class="delete-btn" aria-label="Eliminar tarea">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+      </button>
+    `;
+
+    item.querySelector('.delete-btn')!.addEventListener('click', () => {
+      item.style.animation = 'fadeOut 0.3s ease forwards';
+      setTimeout(() => deleteTask(task.id, item), 280);
+    });
+
+    return item;
+  }
+
+  async function loadTasks() {
+    try {
+      const res   = await fetch(`${API}/tasks`);
+      const tasks = await res.json();
+
+      container.querySelectorAll('.task-item').forEach(el => el.remove());
+
+      tasks.forEach((task: { id: number; title: string; created_at: string }) => {
+        container.appendChild(createTaskElement(task));
+      });
+
+      toggleEmpty();
+    } catch {
+      console.error('No se pudo conectar con la API');
+    }
+  }
+
+  async function createTask(title: string) {
+    try {
+      const res  = await fetch(`${API}/tasks`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ title }),
+      });
+      const task = await res.json();
+      container.prepend(createTaskElement(task));
+      toggleEmpty();
+    } catch {
+      console.error('Error al crear la tarea');
+    }
+  }
+
+  async function deleteTask(id: number, element: HTMLElement) {
+    try {
+      await fetch(`${API}/tasks/${id}`, { method: 'DELETE' });
+      element.remove();
+      toggleEmpty();
+    } catch {
+      console.error('Error al eliminar la tarea');
+      // Restore animation if fail
+      element.style.animation = 'fadeIn 0.3s ease forwards';
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = input.value.trim();
+    if (!title) return;
+    
+    // UI Feedback
+    const btn = form.querySelector('button');
+    if(btn) {
+      btn.innerHTML = '<span class="loader"></span>';
+      btn.disabled = true;
+    }
+
+    input.value = '';
+    await createTask(title);
+    
+    if(btn) {
+      btn.innerHTML = 'Agregar';
+      btn.disabled = false;
+    }
+    input.focus();
+  });
+
+  loadTasks();
+</script>

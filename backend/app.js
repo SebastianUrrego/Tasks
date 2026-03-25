@@ -27,7 +27,7 @@ async function initDB() {
     console.log('Tabla tasks lista.');
 }
 
-// GET /tasks → listar todas las tareas
+// GET /tasks - listar todas las tareas
 app.get('/tasks', async (req, res) => {
     try {
         const result = await pool.query(
@@ -39,7 +39,7 @@ app.get('/tasks', async (req, res) => {
     }
 });
 
-// POST /tasks → crear una tarea
+// POST /tasks -> crear una tarea
 app.post('/tasks', async (req, res) => {
     const { title } = req.body;
 
@@ -58,7 +58,7 @@ app.post('/tasks', async (req, res) => {
     }
 });
 
-// DELETE /tasks/:id → eliminar una tarea por ID
+// DELETE /tasks/:id -> eliminar una tarea por ID
 app.delete('/tasks/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -82,12 +82,20 @@ app.delete('/tasks/:id', async (req, res) => {
     }
 });
 
-// Arrancar el servidor
+// Arranque del servidor
 async function start() {
     await initDB();
     app.listen(PORT, () => {
         console.log(`Servidor corriendo en el puerto ${PORT}`);
     });
 }
+
+// Permitir peticiones desde el frontend
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
 
 start();

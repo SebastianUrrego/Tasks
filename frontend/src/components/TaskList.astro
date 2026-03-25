@@ -1,0 +1,156 @@
+<div id="task-container">
+  <div id="empty-msg" class="empty-state">
+    <div class="empty-icon">☕</div>
+    <h3>Todo al día</h3>
+    <p>Disfruta de tu tiempo libre o agrega una nueva tarea.</p>
+  </div>
+</div>
+
+<style is:global>
+  #task-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    min-height: 200px;
+    position: relative;
+  }
+
+  .empty-state {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .empty-state h3 {
+    color: var(--text-main);
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .empty-state p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    max-width: 250px;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top center;
+  }
+
+  .task-item:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-highlight);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .task-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .check-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+
+  .task-item:hover .check-indicator {
+    background: var(--accent-glow);
+  }
+
+  .task-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .task-title {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-main);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .task-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.35rem;
+    font-weight: 500;
+  }
+
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+  }
+
+  .delete-btn:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+    transform: rotate(90deg);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes fadeOut {
+    to { opacity: 0; transform: translateX(20px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>
