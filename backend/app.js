@@ -4,9 +4,17 @@ const { Pool } = require('pg');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json()); //leer JSON en los requests
+app.use(express.json());
 
-// Pool = grupo de conexiones reutilizables (más eficiente que una sola conexión)
+// Permitir peticiones desde el frontend
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
+
+// Pool = grupo de conexiones reutilizables
 const pool = new Pool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
@@ -15,7 +23,7 @@ const pool = new Pool({
     database: process.env.DB_NAME,
 });
 
-//crear la tabla si no existe al arrancar el servidor
+// Crear la tabla si no existe al arrancar el servidor
 async function initDB() {
     await pool.query(`
     CREATE TABLE IF NOT EXISTS tasks (
@@ -39,7 +47,7 @@ app.get('/tasks', async (req, res) => {
     }
 });
 
-// POST /tasks -> crear una tarea
+// POST /tasks - crear una tarea
 app.post('/tasks', async (req, res) => {
     const { title } = req.body;
 
@@ -58,7 +66,7 @@ app.post('/tasks', async (req, res) => {
     }
 });
 
-// DELETE /tasks/:id -> eliminar una tarea por ID
+// DELETE /tasks/:id - eliminar una tarea por ID
 app.delete('/tasks/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -89,13 +97,5 @@ async function start() {
         console.log(`Servidor corriendo en el puerto ${PORT}`);
     });
 }
-
-// Permitir peticiones desde el frontend
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
 
 start();
